@@ -3,6 +3,8 @@
 
 {% block body %}
 
+   <a href="{{ path('admin-post-new') }}">Nový článek</a>
+   <br>
 {% for post in posts %}
 
    {{ post.id }}
