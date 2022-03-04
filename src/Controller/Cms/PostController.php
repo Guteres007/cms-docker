@@ -5,6 +5,7 @@ namespace App\Controller\Cms;
 
 
 use App\Entity\Post;
+use App\Repository\PostRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,15 +19,13 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
     {
         if ($request->getMethod() === 'POST') {
             $em = $doctrine->getManager();
-            $post = new Post();
-            //Slug
+            $title = $request->get('title');
+            $description =    $request->get('description');
+
             $slugger = new AsciiSlugger();
-            $slug = $slugger->slug($request->get('title'));
-            $post->setSlug($slug);
-            $post->setDescription($request->get('description'));
-            $post->setTitle($request->get('title'));
+            $slug = $slugger->slug($title);
 
-
+            $post = new Post($title,$description,$slug);
             $errors =  $validator->validate($post);
 
             if(count($errors) > 0) {
@@ -44,17 +43,17 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
     }
 
     #[Route('/admin/posts', name: 'admin-posts')]
-    public function index(ManagerRegistry $doctrine)
+    public function index(PostRepository $postRepository)
     {
-        $posts = $doctrine->getRepository(Post::class)->findAll();
+        $posts = $postRepository->findAll();
+
         return $this->render('/cms/post/index.html.twig', compact('posts'));
     }
 
     #[Route('/admin/post/{id}/edit', name: 'admin-post-edit')]
-    public function edit($id, Request $request, ManagerRegistry $doctrine)
+    public function edit($id, Request $request, PostRepository $postRepository)
     {
-        $post = $doctrine->getRepository(Post::class)->find($id);
-
+        $post = $postRepository->find($id);
         if (!$post) {
             throw $this->createNotFoundException(
                 'No product found for id '.$id
@@ -62,10 +61,11 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
         }
 
         if ($request->getMethod() === 'POST') {
-            $em = $doctrine->getManager();
+
             $post->setDescription($request->get('description'));
             $post->setTitle($request->get('title'));
-            $em->flush();
+            $postRepository->update($post);
+
             return $this->redirectToRoute('admin-posts');
         }
 

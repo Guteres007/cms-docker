@@ -25,6 +25,13 @@ class Post
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     private $slug;
 
+    public function __construct($title,$description,$slug)
+    {
+        $this->title = $title;
+        $this->description = $description;
+        $this->slug = $slug;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
