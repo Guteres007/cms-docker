@@ -4,7 +4,9 @@
 namespace App\Controller\Cms;
 
 
+use App\DataObject\PostDataObject;
 use App\Entity\Post;
+use App\Form\PostType;
 use App\Repository\PostRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,15 +19,17 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
     #[Route('/admin/post/new', name: 'admin-post-new')]
     public function new( Request $request, ManagerRegistry $doctrine, ValidatorInterface $validator)
     {
-        if ($request->getMethod() === 'POST') {
+        $postData = new PostDataObject();
+        $form = $this->createForm(PostType::class, $postData);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
             $em = $doctrine->getManager();
-            $title = $request->get('title');
-            $description =    $request->get('description');
-
             $slugger = new AsciiSlugger();
-            $slug = $slugger->slug($title);
+            $slug = $slugger->slug($data->title);
 
-            $post = new Post($title,$description,$slug);
+            $post = new Post($data->title,$data->description,$slug);
             $errors =  $validator->validate($post);
 
             if(count($errors) > 0) {
@@ -39,7 +43,9 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
             return $this->redirectToRoute('admin-posts');
 
         }
-        return $this->render('/cms/post/new.html.twig');
+        return $this->render('/cms/post/new.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
     #[Route('/admin/posts', name: 'admin-posts')]
@@ -51,8 +57,9 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
     }
 
     #[Route('/admin/post/{id}/edit', name: 'admin-post-edit')]
-    public function edit($id, Request $request, PostRepository $postRepository)
+    public function edit($id, Request $request, PostRepository $postRepository, ManagerRegistry $doctrine)
     {
+        $em = $doctrine->getManager();
         $post = $postRepository->find($id);
         if (!$post) {
             throw $this->createNotFoundException(
@@ -64,7 +71,7 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
 
             $post->setDescription($request->get('description'));
             $post->setTitle($request->get('title'));
-            $postRepository->update($post);
+            $em->flush();
 
             return $this->redirectToRoute('admin-posts');
         }

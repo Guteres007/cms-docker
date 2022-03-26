@@ -45,12 +45,6 @@ class PostRepository extends ServiceEntityRepository
         }
     }
 
-    public function update(Post $entity, bool $flush = true): void
-    {
-        if ($flush) {
-            $this->_em->flush();
-        }
-    }
 
     // /**
     //  * @return Post[] Returns an array of Post objects
