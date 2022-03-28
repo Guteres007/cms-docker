@@ -4,7 +4,9 @@
 namespace App\Controller\Cms;
 
 
+use App\DataObject\LabelDataObject;
 use App\DataObject\PostDataObject;
+use App\Entity\Label;
 use App\Entity\Post;
 use App\Form\PostType;
 use App\Repository\PostRepository;
@@ -28,15 +30,18 @@ class PostController extends \Symfony\Bundle\FrameworkBundle\Controller\Abstract
             $em = $doctrine->getManager();
             $slugger = new AsciiSlugger();
             $slug = $slugger->slug($data->title);
-
+            
+            $label = new Label($data->label->title);
             $post = new Post($data->title,$data->description,$slug);
-            $errors =  $validator->validate($post);
+            $post->addLabel($label);
+            $errors = $validator->validate($post);
 
             if(count($errors) > 0) {
                 return $this->render('/cms/post/new.html.twig', [
                     'errors' => $errors,
                 ]);
             }
+        
             $em->persist($post);
             $em->flush();
 

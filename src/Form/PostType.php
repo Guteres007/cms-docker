@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\DataObject\PostDataObject;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -17,6 +18,7 @@ class PostType extends AbstractType
         $builder
             ->add('title', TextType::class)
             ->add('description', TextareaType::class)
+            ->add('label', LabelType::class)
             ->add('save', SubmitType::class)
         ;
     }

@@ -4,15 +4,8 @@
 namespace App\DataObject;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
-class PostDataObject
+class LabelDataObject
 {
     #[Assert\NotBlank]
     public $title;
-
-    #[Assert\NotBlank]
-    public $description;
-
-    #[Assert\NotBlank]
-    public $label;
 }
